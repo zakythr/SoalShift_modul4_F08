@@ -46,11 +46,11 @@ void enkript(char *simpanpath)
     {
       continue;
     }
-    for(int j=0; j < 94; j++)
+    for(int j=0; j < ukuran; j++)
     {
       if(simpanpath[i] == password[j])
       {
-       	simpanpath[i] = password[(j + key)%94];
+       	simpanpath[i] = password[(j + key)%ukuran];
       	break;
       }
     }
