@@ -9,6 +9,7 @@
 #include <sys/time.h>
 
 char password[100]={"qE1~ YMUR2\"`hNIdPzi\%^t@(Ao:=CQ,nx4S[7mHFye#aT6+v)DfKL$r?bkOGB>}!9_wV']jcp5JZ&Xl|\\8s;g<{3.u*W-0"};
+int ukuran = strlen(caesarcipher);
 
 static const char *dirpath = "/home/zaky/shift4";
 int key=17;
@@ -20,23 +21,6 @@ char cek2[500];
 char namalama[100];
 char namabaru[100];
 char copy[]=".copy";
-
-#define FUSE_USE_VERSION 28
-#include <fuse.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <dirent.h>
-#include <errno.h>
-#include <sys/time.h>
-
-char password[100]={"qE1~ YMUR2\"`hNIdPzi\%^t@(Ao:=CQ,nx4S[7mHFye#aT6+v)DfKL$r?bkOGB>}!9_wV']jcp5JZ&Xl|\\8s;g<{3.u*W-0"};
-
-static const char *dirpath = "/home/naim/shift4";
-int key=17;
-
-int ukuran = strlen(caesarcipher);
 
 void dekript(char *simpanpath)
 {
