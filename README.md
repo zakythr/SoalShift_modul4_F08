@@ -11,7 +11,8 @@ Misalkan ada file bernama “halo” di dalam folder “INI_FOLDER”, dan key y
 
 Perhatian: Karakter ‘/’ adalah karakter ilegal dalam penamaan file atau folder dalam *NIX, maka dari itu dapat diabaikan
 
-```#define FUSE_USE_VERSION 28
+```
+#define FUSE_USE_VERSION 28
 #include <fuse.h>
 #include <stdio.h>
 #include <string.h>
@@ -26,6 +27,8 @@ char password[100]={"qE1~ YMUR2\"`hNIdPzi\%^t@(Ao:=CQ,nx4S[7mHFye#aT6+v)DfKL$r?b
 static const char *dirpath = "/home/naim/shift4";
 int key=17;
 
+int ukuran = strlen(caesarcipher);
+
 void dekript(char *simpanpath)
 {
   int panjangpath = strlen(simpanpath), i, j;
@@ -35,11 +38,11 @@ void dekript(char *simpanpath)
     {
      continue;
     }
-    for(j=0; j<94; j++)
+    for(j=0; j<ukuran; j++)
     {
       if(simpanpath[i] == password[j])
       {
-	simpanpath[i] = password[((j - key)+94)%94];
+	simpanpath[i] = password[((j - key)+ukuran)%ukuran];
 	break;
       }
     }
@@ -158,6 +161,7 @@ int main(int argc, char *argv[])
 	umask(0);
 	return fuse_main(argc, argv, &xmp_oper, NULL);
 }
+
 ```
 
 ## SOAL 2
