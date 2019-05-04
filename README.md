@@ -58,8 +58,8 @@ void decrypt(char change[])
 ```
 - Langkah kedua, memanggil fungsi encrypt pada xmp_read, xmp_getattr, dan xmp_readdir. Memanggil fungsi decrypt pada xmp_readdir
 
-
-3. Sebelum diterapkannya file system ini, Atta pernah diserang oleh hacker LAPTOP_RUSAK yang menanamkan user bernama “chipset” dan “ic_controller” serta group “rusak” yang tidak bisa dihapus. Karena paranoid, Atta menerapkan aturan pada file system ini untuk menghapus “file bahaya” yang memiliki spesifikasi:
+##  SOAL 3
+Sebelum diterapkannya file system ini, Atta pernah diserang oleh hacker LAPTOP_RUSAK yang menanamkan user bernama “chipset” dan “ic_controller” serta group “rusak” yang tidak bisa dihapus. Karena paranoid, Atta menerapkan aturan pada file system ini untuk menghapus “file bahaya” yang memiliki spesifikasi:
 Owner Name 	: ‘chipset’ atau ‘ic_controller’
 Group Name	: ‘rusak’
 Tidak dapat dibaca
@@ -100,7 +100,8 @@ if( (strcmp(p->pw_name, "chipset") == 0 || strcmp(p->pw_name, "ic_controller") =
 
 ```
 
-4. Pada folder YOUTUBER, setiap membuat folder permission foldernya akan otomatis menjadi 750. Juga ketika membuat file permissionnya akan otomatis menjadi 640 dan ekstensi filenya akan bertambah “.iz1”. File berekstensi “.iz1” tidak bisa diubah permissionnya dan memunculkan error bertuliskan “File ekstensi iz1 tidak boleh diubah permissionnya.”
+##  SOAL 4
+Pada folder YOUTUBER, setiap membuat folder permission foldernya akan otomatis menjadi 750. Juga ketika membuat file permissionnya akan otomatis menjadi 640 dan ekstensi filenya akan bertambah “.iz1”. File berekstensi “.iz1” tidak bisa diubah permissionnya dan memunculkan error bertuliskan “File ekstensi iz1 tidak boleh diubah permissionnya.”
 
 - Langkah pertama, kita membuat kondisijika di dalam folder YOUTUBER maka membuat folder permission nya 0750 dan membuat file dengan permission 0640 
 ```
