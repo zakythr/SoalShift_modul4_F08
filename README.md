@@ -11,176 +11,126 @@ Misalkan ada file bernama “halo” di dalam folder “INI_FOLDER”, dan key y
 
 Perhatian: Karakter ‘/’ adalah karakter ilegal dalam penamaan file atau folder dalam *NIX, maka dari itu dapat diabaikan
 
+- Langkah pertama, kita membuat fungsi encrypt dan decryptnya
 ```
-#define FUSE_USE_VERSION 28
-#include <fuse.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <dirent.h>
-#include <errno.h>
-#include <sys/time.h>
-
-char password[100]={"qE1~ YMUR2\"`hNIdPzi\%^t@(Ao:=CQ,nx4S[7mHFye#aT6+v)DfKL$r?bkOGB>}!9_wV']jcp5JZ&Xl|\\8s;g<{3.u*W-0"};
-
-static const char *dirpath = "/home/naim/shift4";
-int key=17;
-
-int ukuran = strlen(caesarcipher);
-
-void dekript(char *simpanpath)
+void encrypt(char change[])
 {
-  int panjangpath = strlen(simpanpath), i, j;
-  for(i=0; i < panjangpath; i++)
-  {
-    if(simpanpath[i] == '/')
-    {
-     continue;
-    }
-    for(j=0; j<ukuran; j++)
-    {
-      if(simpanpath[i] == password[j])
-      {
-	simpanpath[i] = password[((j - key)+ukuran)%ukuran];
-	break;
-      }
-    }
-  }
-}
-
-void enkript(char *simpanpath)
-{
-  int panjangpath, i, j;
-  panjangpath = strlen(simpanpath);
-
-  for(int i=0; i < panjangpath; i++)
-  {
-    if(simpanpath[i]=='/')
-    {
-      continue;
-    }
-    for(int j=0; j < ukuran; j++)
-    {
-      if(simpanpath[i] == password[j])
-      {
-       	simpanpath[i] = password[(j + key)%ukuran];
-      	break;
-      }
-    }
-  }
-}
-
-
-
-static int xmp_getattr(const char *path, struct stat *stbuf)
-{
- 	int res;
-	enkript(path);
-	char fpath[1000];
-	sprintf(fpath,"%s%s",dirpath,path);
-	res = lstat(fpath, stbuf);
-
-	if (res == -1)
-		return -errno;
-
-	return 0;
-}
-
-static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-		       off_t offset, struct fuse_file_info *fi)
-{
-  char fpath[1000];
-	enkript(path);
-	if(strcmp(path,"/") == 0)
+	int n, i, ch;
+	for(n = 0; change[n] != '\0'; ++n)
 	{
-		path=dirpath;
-		sprintf(fpath,"%s",path);
+		ch = change[n];
+
+		if(ch == '/') continue;		//jika bertemu / maka akan lanjut mengencrypt
+
+		for(i = 0; i < strlen(cipher); i++)
+		{
+			if(ch == cipher[i]) break;
+		}
+		
+		i = i + 17;
+		if(i > 93) i = i - strlen(cipher);
+
+		change[n] = cipher[i];
 	}
-	else sprintf(fpath, "%s%s",dirpath,path);
-	int res = 0;
-
-	DIR *dp;
-	struct dirent *de;
-
-	(void) offset;
-	(void) fi;
-
-	dp = opendir(fpath);
-	if (dp == NULL)
-		return -errno;
-
-	while ((de = readdir(dp)) != NULL) {
-		struct stat st;
-		memset(&st, 0, sizeof(st));
-		st.st_ino = de->d_ino;
-		st.st_mode = de->d_type << 12;
-		dekript(de->d_name);
-		res = (filler(buf, de->d_name, &st, 0));
-			if(res!=0) break;
-	}
-
-	closedir(dp);
-	return 0;
 }
 
-static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
-		    struct fuse_file_info *fi)
+void decrypt(char change[])
 {
-  char fpath[1000];
-	if(strcmp(path,"/") == 0)
+	int n, i, ch;
+	for(n = 0; change[n] != '\0'; ++n)
 	{
-		path=dirpath;
-		sprintf(fpath,"%s",path);
+		ch = change[n];
+
+		if(ch == '/') continue;
+
+		for(i = 0; i < strlen(cipher); i++)
+		{
+			if(ch == cipher[i]) break;
+		}
+		
+		i = i - 17;
+		if(i < 0) i = i + strlen(cipher);
+
+		change[n] = cipher[i];
 	}
-	else sprintf(fpath, "%s%s",dirpath,path);
-	int res = 0;
-  int fd = 0 ;
-
-	(void) fi;
-	fd = open(fpath, O_RDONLY);
-	if (fd == -1)
-		return -errno;
-
-	res = pread(fd, buf, size, offset);
-	if (res == -1)
-		res = -errno;
-
-	close(fd);
-	return res;
-}
-
-static struct fuse_operations xmp_oper = {
-	.getattr	= xmp_getattr,
-	.readdir	= xmp_readdir,
-	.read		= xmp_read,
-};
-
-int main(int argc, char *argv[])
-{
-	umask(0);
-	return fuse_main(argc, argv, &xmp_oper, NULL);
 }
 
 ```
+- Langkah kedua, memanggil fungsi encrypt pada xmp_read, xmp_getattr, dan xmp_readdir. Memanggil fungsi decrypt pada xmp_readdir
 
-## SOAL 2
 
-Semua file video yang tersimpan secara terpecah-pecah (splitted) harus secara otomatis tergabung (joined) dan diletakkan dalam folder “Videos”
-Urutan operasi dari kebutuhan ini adalah:
-<ol>
-<li>  Tepat saat sebelum file system di-mount
-    <ol>
-    <li>Secara otomatis folder “Videos” terbuat di root directory file system
-    <li>Misal ada sekumpulan file pecahan video bernama “computer.mkv.000”, “computer.mkv.001”, “computer.mkv.002”, dst. Maka secara otomatis file pecahan tersebut akan di-join menjadi file video “computer.mkv”
-Untuk mempermudah kalian, dipastikan hanya video file saja yang terpecah menjadi beberapa file. File pecahan tersebut dijamin terletak di root folder fuse
-    <li>Karena mungkin file video sangat banyak sehingga mungkin saja saat menggabungkan file video, file system akan membutuhkan waktu yang lama untuk sukses ter-mount. Maka pastikan saat akan menggabungkan file pecahan video, file system akan membuat 1 thread/proses(fork) baru yang dikhususkan untuk menggabungkan file video tersebut
-    <li>Pindahkan seluruh file video yang sudah ter-join ke dalam folder “Videos”
-    <li>Jangan tampilkan file pecahan di direktori manapun
-  </ol>
-  <li> Tepat saat file system akan di-unmount
-    <ol>
-    <li> Hapus semua file video yang berada di folder “Videos”, tapi jangan hapus file pecahan yang terdapat di root directory file system
-    <li> Hapus folder “Videos” 
-    </ol>
+3. Sebelum diterapkannya file system ini, Atta pernah diserang oleh hacker LAPTOP_RUSAK yang menanamkan user bernama “chipset” dan “ic_controller” serta group “rusak” yang tidak bisa dihapus. Karena paranoid, Atta menerapkan aturan pada file system ini untuk menghapus “file bahaya” yang memiliki spesifikasi:
+Owner Name 	: ‘chipset’ atau ‘ic_controller’
+Group Name	: ‘rusak’
+Tidak dapat dibaca
+Jika ditemukan file dengan spesifikasi tersebut ketika membuka direktori, Atta akan menyimpan nama file, group ID, owner ID, dan waktu terakhir diakses dalam file “filemiris.txt” (format waktu bebas, namun harus memiliki jam menit detik dan tanggal) lalu menghapus “file bahaya” tersebut untuk mencegah serangan lanjutan dari LAPTOP_RUSAK.
+
+```
+if( (strcmp(p->pw_name, "chipset") == 0 || strcmp(p->pw_name, "ic_controller") == 0) && strcmp(g->gr_name, "rusak") == 0 )
+				{
+					//check if file readable
+					if(fopen(show, "r") == NULL)
+					{
+						//error access??
+						if(errno == EACCES)
+						{
+							//it's time for record
+							FILE *teks;
+							int tahun = waktu->tm_year + 1900;
+							char sumber[1000];
+							char ketikan[2064];
+							sprintf(sumber, "%s/V[EOr[c[Y`HDH", dirpath);	//encrypt an filemiris.txt
+							sprintf(ketikan, "%s %d %d | waktu : %02d:%02d:%02d [%02d %02d %04d]\n", show, st.st_uid, st.st_gid, waktu->tm_hour, waktu->tm_min, waktu->tm_sec, waktu->tm_mday, waktu->tm_mon, tahun);
+							teks = fopen(sumber, "a");	//membuka filemiris.txt, "a" membuat file jika blm dibuat
+							fputs(ketikan, teks);		//meletakkan teks ke dlm file
+							fclose(teks);			//menutup filemiris.txt
+
+							remove(show);
+						}
+					}	
+
+					//no.1
+					else 
+					{
+						decrypt(dpath);
+						res = (filler(buf, dpath, &st, 0));
+						if(res!=0) break;
+					}
+				}
+
+```
+
+4. Pada folder YOUTUBER, setiap membuat folder permission foldernya akan otomatis menjadi 750. Juga ketika membuat file permissionnya akan otomatis menjadi 640 dan ekstensi filenya akan bertambah “.iz1”. File berekstensi “.iz1” tidak bisa diubah permissionnya dan memunculkan error bertuliskan “File ekstensi iz1 tidak boleh diubah permissionnya.”
+
+- Langkah pertama, kita membuat kondisijika di dalam folder YOUTUBER maka membuat folder permission nya 0750 dan membuat file dengan permission 0640 
+```
+    if(strstr(fpath, "/@ZA>AXio/") != NULL)	//hasil encrypt YOUTUBER
+    {
+    	res = mkdir(fpath, 0750);
+    }
+    else res = mkdir(fpath, mode); 
     
+    if(strstr(fpath, "/@ZA>AXio/") != NULL)		//mencari string @ZA>AXio dalam string /@ZA>AXio/
+    {							//return NULL jika tdk ada
+    	res = creat(fpath, 0640);
+    }
+    else res = creat(fpath, mode);
+```
+
+- Lalu membuat pesan error jika, merubah permission file yang ber-ekstensi "iz1"
+
+```
+if(strcmp(ext, ".iz1")==0)
+		{
+			pid_t child;
+			child = fork();
+
+			if(child==0)
+			{
+				char *argv[4] = {"zenity", "--warning", "--text='File ekstensi iz1 tidak boleh diubah permissionnya.'", NULL};
+				execv("/usr/bin/zenity", argv);
+			}
+			return 0;
+		}
+```
+
